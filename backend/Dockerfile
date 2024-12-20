@@ -35,4 +35,5 @@ COPY . /app/
 EXPOSE 5008
 
 # Run Gunicorn to serve the app
-CMD ["gunicorn", "-w", "8", "-b", "0.0.0.0:5008", "--worker-connections", "1000", "--timeout", "60", "--worker-class", "gevent", "run_gunicorn:app"]
+# CMD ["gunicorn", "-w", "8", "-b", "0.0.0.0:5008", "--worker-connections", "1000", "--timeout", "60", "--worker-class", "gevent", "run_gunicorn:app"]
+CMD ["gunicorn", "-w", "8", "-b", "0.0.0.0:5008", "--worker-connections", "1000", "--timeout", "60", "run_gunicorn:app"]

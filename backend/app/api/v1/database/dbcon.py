@@ -1,37 +1,32 @@
-import json
+from pymongo import MongoClient
 import os
 from dotenv import load_dotenv
-from pymongo import MongoClient
-from pymongo.errors import ServerSelectionTimeoutError, BulkWriteError
+import json
 from bson import ObjectId
+from pymongo.errors import ServerSelectionTimeoutError
 
-
-# Load environment variables and connect to MongoDB
 def get_mongo_db():
     try:
-        load_dotenv()  # Load environment variables from a .env file
-        mongo_replica = os.getenv("MONGO_URI")
+        load_dotenv()
         mongoDatabase = os.getenv("MONGO_DB_NAME")
+        mongo_replica = os.getenv("MONGO_REPLICA_URI")
 
-        if not mongo_replica or not mongoDatabase:
-            raise ValueError("Required environment variables are missing.")
-
-        # Connect to MongoDB with a timeout
-        mongo_client = MongoClient(mongo_replica, serverSelectionTimeoutMS=5000)
+        # mongo_client = MongoClient(mongoUri, int(mongoport))
+        mongo_client = MongoClient(mongo_replica)
         db = mongo_client.get_database(mongoDatabase)
-        print("Connected to MongoDB successfully.")
         return mongo_client, db
-
-    except ValueError as ve:
-        print(f"Configuration error: {ve}")
     except ServerSelectionTimeoutError as e:
         print(f"Server selection timeout error: {e}")
+        # Handle the error (e.g., log, retry, return a default value)
     except Exception as e:
         print(f"Error connecting to the database: {e}")
-    return None, None
+        # Handle the error as needed (e.g., log, raise, return a default value)
+        return None
 
 client, database = get_mongo_db()
+# Ensure the connection is successful before proceeding
 address_collection = database.get_collection("address")
+
 
 # Custom JSON encoder to handle ObjectId serialization
 class JSONEncoder(json.JSONEncoder):

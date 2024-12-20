@@ -4,22 +4,49 @@ services:
       context: ./backend
     container_name: backend
     depends_on:
-      - mongo
+      - mongo1
     restart: unless-stopped
     ports:
       - "5008:5008"
     networks:
       backend_network:
-        ipv4_address: 172.29.1.3
-
-  mongo:
+        ipv4_address: 172.29.1.5
+  
+  mongo1:
     image: mongo:5
-    container_name: mongo
+    container_name: mongo1
+    command: ["--replSet", "my-replica-set", "--bind_ip_all", "--port", "30001"]
     volumes:
-      - /mnt/database/data/mongo-1:/data/db
+      - /mnt/mongo-replica-set/data/mongo-1:/data/db
     networks:
       backend_network:
         ipv4_address: 172.29.1.2
+    healthcheck:
+      test: test $$(echo "rs.initiate({_id:'my-replica-set',members:[{_id:0,host:\"mongo1:30001\"},{_id:1,host:\"mongo2:30002\"},{_id:2,host:\"mongo3:30003\"}]}).ok || rs.status().ok" | mongo --port 30001 --quiet) -eq 1
+      interval: 10s
+      start_period: 30s
+    restart: always
+
+  mongo2:
+    image: mongo:5
+    container_name: mongo2
+    command: ["--replSet", "my-replica-set", "--bind_ip_all", "--port", "30002"]
+    volumes:
+      - /mnt/mongo-replica-set/data/mongo-2:/data/db
+    networks:
+      backend_network:
+        ipv4_address: 172.29.1.3
+    restart: always
+
+  mongo3:
+    image: mongo:5
+    container_name: mongo3
+    command: ["--replSet", "my-replica-set", "--bind_ip_all", "--port", "30003"]
+    volumes:
+      - /mnt/mongo-replica-set/data/mongo-3:/data/db
+    networks:
+      backend_network:
+        ipv4_address: 172.29.1.4
     restart: always
 
 networks:
